@@ -56,3 +56,27 @@ func (h *Handler) GetByID(c *gin.Context) {
 
 	c.JSON(200, data)
 }
+
+func (h *Handler) Search(c *gin.Context) {
+
+	query := c.Query("q")
+	author := c.Query("author")
+	status := c.Query("status")
+	genre := c.Query("genre")
+
+	mangas, err := h.service.SearchManga(
+		query,
+		author,
+		status,
+		genre,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, mangas)
+}

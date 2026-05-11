@@ -23,3 +23,18 @@ func (s *Service) GetAll() ([]models.Manga, error) {
 func (s *Service) GetByID(id string) (models.Manga, error) {
 	return s.repo.GetByID(id)
 }
+
+func (s *Service) SearchManga(
+	query string,
+	author string,
+	status string,
+	genre string,
+) ([]models.Manga, error) {
+
+	return s.repo.Search(
+		query,
+		author,
+		status,
+		genre,
+	)
+}

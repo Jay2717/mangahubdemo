@@ -42,6 +42,7 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	mangaGroup := r.Group("/manga")
 	{
 		mangaGroup.GET("/", mangaHandler.GetAll)
+		mangaGroup.GET("/search", mangaHandler.Search)
 		mangaGroup.GET("/:id", mangaHandler.GetByID)
 		mangaGroup.POST("/", mangaHandler.CreateManga)
 	}
