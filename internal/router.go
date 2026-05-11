@@ -13,10 +13,33 @@ import (
 	"mangahub/pkg/middleware"
 
 	"mangahub/internal/progress"
+
+	"time"
+
+	"github.com/gin-contrib/cors"
 )
 
 func SetupRouter(db *sql.DB) *gin.Engine {
 	r := gin.Default()
+
+	// ⭐ ADD CORS HERE (PHẢI ĐẶT TRƯỚC TẤT CẢ ROUTES)
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost:5173"},
+		AllowMethods: []string{
+			"GET",
+			"POST",
+			"PUT",
+			"DELETE",
+			"OPTIONS",
+		},
+		AllowHeaders: []string{
+			"Origin",
+			"Content-Type",
+			"Authorization",
+		},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())

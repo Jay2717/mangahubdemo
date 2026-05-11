@@ -3,6 +3,7 @@ module mangahub
 go 1.26.3
 
 require (
+	github.com/gin-contrib/cors v1.7.7
 	github.com/gorilla/websocket v1.5.3
 	github.com/mattn/go-sqlite3 v1.14.44
 	golang.org/x/crypto v0.48.0
@@ -31,9 +32,9 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.1 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.5.0 // indirect
-	golang.org/x/arch v0.22.0 // indirect
+	golang.org/x/arch v0.23.0 // indirect
 	golang.org/x/net v0.51.0 // indirect
-	golang.org/x/text v0.34.0 // indirect
+	golang.org/x/text v0.35.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
 

@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package manga;
+
+option go_package = "./proto";
+
+service MangaService {
+  rpc GetMangaList (Empty) returns (MangaList);
+}
+
+message Empty {}
+
+message Manga {
+  string id = 1;
+  string title = 2;
+  string author = 3;
+}
+
+message MangaList {
+  repeated Manga mangas = 1;
+}
