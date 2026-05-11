@@ -3,98 +3,53 @@ package auth
 import (
 	"net/http"
 
-	"mangahub/pkg/utils"
-
 	"github.com/gin-gonic/gin"
+	"mangahub/pkg/utils"
 )
 
-type Handler struct {
-	service *Service
-}
-
-func NewHandler(service *Service) *Handler {
-	return &Handler{
-		service: service,
-	}
-}
-
-// DTO
-type RegisterInput struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type LoginInput struct {
+type AuthRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
-func (h *Handler) Register(c *gin.Context) {
-	var input RegisterInput
+func RegisterHandler(c *gin.Context) {
+	var req AuthRequest
 
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
 	}
 
-	err := h.service.RegisterUser(
-		input.Username,
-		input.Email,
-		input.Password,
-	)
-
+	err := RegisterUser(req.Username, req.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "User registered successfully",
-	})
+	c.JSON(http.StatusOK, gin.H{"message": "user registered"})
 }
 
-func (h *Handler) Login(c *gin.Context) {
-	var input LoginInput
+func LoginHandler(c *gin.Context) {
+	var req AuthRequest
 
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 		return
 	}
 
-	user, err := h.service.LoginUser(
-		input.Username,
-		input.Password,
-	)
-
+	user, err := LoginUser(req.Username, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "Invalid credentials",
-		})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		return
 	}
 
 	token, err := utils.GenerateToken(user.Username)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Could not generate token",
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot generate token"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Login successful",
-		"token":   token,
-		"user": gin.H{
-			"id":       user.ID,
-			"username": user.Username,
-			"email":    user.Email,
-		},
+		"token": token,
 	})
 }

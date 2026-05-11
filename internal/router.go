@@ -1,95 +1,31 @@
 package internal
 
 import (
-	"database/sql"
-
-	"github.com/gin-gonic/gin"
-
-	"mangahub/internal/auth"
-	"mangahub/internal/chat"
-	"mangahub/internal/library"
-	"mangahub/internal/manga"
-	"mangahub/internal/websocket"
-	"mangahub/pkg/middleware"
-
-	"mangahub/internal/progress"
+    "github.com/gin-gonic/gin"
+    "mangahub/internal/manga"
+    "mangahub/internal/auth"
+    "mangahub/internal/middleware"
+    "mangahub/internal/health"
+    "mangahub/internal/readinglist"
 )
 
-func SetupRouter(db *sql.DB) *gin.Engine {
-	r := gin.Default()
+func SetupRouter() *gin.Engine {
+    r := gin.Default()
 
-	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
+    r.GET("/ping", func(c *gin.Context) {
+        c.JSON(200, gin.H{"message": "pong"})
+    })
 
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
-	})
+    r.POST("/register", auth.RegisterHandler)
+    r.POST("/login", auth.LoginHandler)
 
-	// AUTH
-	authRepo := auth.NewRepository(db)
-	authService := auth.NewService(authRepo)
-	authHandler := auth.NewHandler(authService)
+    r.GET("/manga", middleware.AuthMiddleware(), manga.GetMangaHandler)
+    r.POST("/manga", middleware.AuthMiddleware(), manga.CreateMangaHandler)
 
-	authGroup := r.Group("/auth")
-	{
-		authGroup.POST("/register", authHandler.Register)
-		authGroup.POST("/login", authHandler.Login)
-	}
+    r.GET("/health", health.HealthHandler)
 
-	// MANGA
-	mangaRepo := manga.NewRepository(db)
-	mangaService := manga.NewService(mangaRepo)
-	mangaHandler := manga.NewHandler(mangaService)
+    r.POST("/reading-list", readinglist.AddToReadingList)
+    r.GET("/reading-list", readinglist.GetReadingList)
 
-	mangaGroup := r.Group("/manga")
-	{
-		mangaGroup.GET("/", mangaHandler.GetAll)
-		mangaGroup.GET("/search", mangaHandler.Search)
-		mangaGroup.GET("/:id", mangaHandler.GetByID)
-		mangaGroup.POST("/", mangaHandler.CreateManga)
-	}
-
-	// PROTECTED ROUTES
-	protected := r.Group("/")
-	protected.Use(middleware.AuthMiddleware())
-
-	// LIBRARY
-	libRepo := library.NewRepository(db)
-
-	progressRepo := progress.NewRepository(db)
-
-	libService := library.NewService(
-		libRepo,
-		progressRepo,
-	)
-
-	libHandler := library.NewHandler(libService)
-
-	libraryGroup := protected.Group("/library")
-	{
-		libraryGroup.POST("/:manga_id", libHandler.Add)
-		libraryGroup.GET("/", libHandler.Get)
-		libraryGroup.DELETE("/:manga_id", libHandler.Remove)
-		libraryGroup.PUT("/:manga_id/status", libHandler.UpdateStatus)
-	}
-	// CHAT
-	chatHub := chat.NewHub()
-	go chatHub.Run()
-
-	chatHandler := chat.NewHandler(chatHub)
-
-	chatGroup := protected.Group("/chat")
-	{
-		chatGroup.GET("/ws/:room_id", chatHandler.HandleWebSocket)
-	}
-
-	// WEBSOCKET
-	wsHandler := websocket.NewHandler()
-
-	wsGroup := protected.Group("/ws")
-	{
-		wsGroup.GET("/manga/:id", wsHandler.HandleMangaRoom)
-	}
-
-	return r
+    return r
 }

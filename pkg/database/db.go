@@ -4,56 +4,73 @@ import (
 	"database/sql"
 	"log"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 var DB *sql.DB
 
-func Connect() {
+func Init() {
 	var err error
-
-	DB, err = sql.Open("sqlite3", "./data/mangahub.db")
-
+	DB, err = sql.Open("sqlite", "mangahub.db")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	createTables()
-
-	log.Println("Database connected")
 }
 
 func createTables() {
-
-	usersTable := `
+	userTable := `
 	CREATE TABLE IF NOT EXISTS users (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		id TEXT PRIMARY KEY,
 		username TEXT UNIQUE,
-		email TEXT UNIQUE,
-		password TEXT
-	);
-	`
+		password_hash TEXT
+	);`
 
 	mangaTable := `
 	CREATE TABLE IF NOT EXISTS manga (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		id TEXT PRIMARY KEY,
 		title TEXT,
-		author TEXT,
-		status TEXT,
-		description TEXT
-	);
-	`
+		author TEXT
+	);`
 
 	progressTable := `
-	CREATE TABLE IF NOT EXISTS user_progress (
+	CREATE TABLE IF NOT EXISTS reading_progress (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		user_id INTEGER,
-		manga_id INTEGER,
+		username TEXT,
+		manga_id TEXT,
 		chapter INTEGER
 	);
 	`
+	readingListTable := `
+	CREATE TABLE IF NOT EXISTS reading_list (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		username TEXT,
+		manga_id TEXT
+	);
+	`
+	
 
-	DB.Exec(usersTable)
-	DB.Exec(mangaTable)
-	DB.Exec(progressTable)
+	_, err := DB.Exec(userTable)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = DB.Exec(mangaTable)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = DB.Exec(progressTable)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = DB.Exec(readingListTable)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	DB.Exec("INSERT OR IGNORE INTO manga(id, title, author) VALUES ('blue-box','Blue Box','Kouji Miura')")
+	DB.Exec("INSERT OR IGNORE INTO manga(id, title, author) VALUES ('oshi-no-koi','Oshi no Ko','Aka Akasaka')")
 }

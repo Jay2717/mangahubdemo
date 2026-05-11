@@ -1,49 +1,25 @@
 package auth
 
 import (
-	"database/sql"
+	"mangahub/pkg/database"
 	"mangahub/pkg/models"
 )
 
-type Repository struct {
-	db *sql.DB
-}
-
-func NewRepository(db *sql.DB) *Repository {
-	return &Repository{db: db}
-}
-
-func (r *Repository) CreateUser(user models.User) error {
-	query := `
-		INSERT INTO users(username, email, password)
-		VALUES(?, ?, ?)
-	`
-
-	_, err := r.db.Exec(
-		query,
-		user.Username,
-		user.Email,
-		user.PasswordHash,
+func CreateUser(u models.User) error {
+	_, err := database.DB.Exec(
+		"INSERT INTO users(id, username, password_hash) VALUES (?, ?, ?)",
+		u.ID, u.Username, u.PasswordHash,
 	)
-
 	return err
 }
 
-func (r *Repository) GetUserByUsername(username string) (models.User, error) {
-	var user models.User
-
-	query := `
-		SELECT id, username, email, password
-		FROM users
-		WHERE username = ?
-	`
-
-	err := r.db.QueryRow(query, username).Scan(
-		&user.ID,
-		&user.Username,
-		&user.Email,
-		&user.PasswordHash,
+func GetUserByUsername(username string) (models.User, error) {
+	row := database.DB.QueryRow(
+		"SELECT id, username, password_hash FROM users WHERE username = ?",
+		username,
 	)
 
-	return user, err
+	var u models.User
+	err := row.Scan(&u.ID, &u.Username, &u.PasswordHash)
+	return u, err
 }
