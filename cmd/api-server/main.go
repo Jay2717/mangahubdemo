@@ -1,24 +1,15 @@
 package main
 
+// go run cmd/api-server/main.go
+// delete later
 import (
-	"log"
-	"os"
-
 	"mangahub/internal"
 	"mangahub/pkg/database"
-	
 )
 
 func main() {
-	database.Init()
+	database.Connect()
 
-	r := internal.SetupRouter()
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	log.Println("Server running on port:", port)
-	r.Run(":" + port)
+	r := internal.SetupRouter(database.DB)
+	r.Run(":8080")
 }

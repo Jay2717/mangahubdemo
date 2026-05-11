@@ -7,19 +7,22 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type Handler struct {
+	hub *Hub
+}
+
+func NewHandler(hub *Hub) *Handler {
+	return &Handler{hub: hub}
+}
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		return true
+		return true // dev mode; production nên check origin
 	},
 }
 
-var hub = NewHub()
-
-func init() {
-	go hub.Run()
-}
-
-func ChatHandler(c *gin.Context) {
+// HandleWebSocket handles websocket connection for chat
+func (h *Handler) HandleWebSocket(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		return
@@ -27,15 +30,16 @@ func ChatHandler(c *gin.Context) {
 
 	client := &Client{
 		conn: conn,
-		send: make(chan []byte),
+		send: make(chan []byte, 256),
 	}
 
-	hub.register <- client
+	// register client to hub
+	h.hub.register <- client
 
-	// read
+	// READ LOOP (receive message from client)
 	go func() {
 		defer func() {
-			hub.unregister <- client
+			h.hub.unregister <- client
 			conn.Close()
 		}()
 
@@ -44,12 +48,17 @@ func ChatHandler(c *gin.Context) {
 			if err != nil {
 				break
 			}
-			hub.broadcast <- msg
+
+			// broadcast to all clients
+			h.hub.broadcast <- msg
 		}
 	}()
 
-	// write
+	// WRITE LOOP (send message to client)
 	for msg := range client.send {
-		conn.WriteMessage(websocket.TextMessage, msg)
+		err := conn.WriteMessage(websocket.TextMessage, msg)
+		if err != nil {
+			break
+		}
 	}
 }

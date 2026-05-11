@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"mangahub/internal/chat"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
