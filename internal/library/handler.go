@@ -15,32 +15,46 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
-// ADD TO LIBRARY
 func (h *Handler) Add(c *gin.Context) {
 	userID := c.GetInt("user_id")
 
 	mangaID, err := strconv.Atoi(c.Param("manga_id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid manga_id"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid manga_id",
+		})
 		return
 	}
 
 	var body struct {
-		Status string `json:"status"`
+		Status         string `json:"status"`
+		CurrentChapter int    `json:"current_chapter"`
 	}
 
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
-	err = h.service.AddToLibrary(userID, mangaID, body.Status)
+	err = h.service.AddToLibrary(
+		userID,
+		mangaID,
+		body.Status,
+		body.CurrentChapter,
+	)
+
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "added"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "added",
+	})
 }
 
 // GET LIBRARY
@@ -49,7 +63,9 @@ func (h *Handler) Get(c *gin.Context) {
 
 	data, err := h.service.GetLibrary(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 

@@ -23,40 +23,48 @@ func (r *Repository) Add(userID, mangaID int, status string) error {
 	return err
 }
 
-func (r *Repository) GetByUser(userID int) ([]models.UserMangaLibrary, error) {
-	rows, err := r.db.Query(
-		`SELECT id, user_id, manga_id, status 
-         FROM user_manga_library 
-         WHERE user_id = ?`,
-		userID,
-	)
+// Get Library
+func (r *Repository) GetByUser(userID int) ([]models.LibraryItem, error) {
+	rows, err := r.db.Query(`
+		SELECT
+			m.id,
+			m.title,
+			l.status,
+			p.current_chapter
+		FROM user_manga_library l
+		JOIN manga m
+			ON l.manga_id = m.id
+		JOIN user_progress p
+			ON p.user_id = l.user_id
+			AND p.manga_id = l.manga_id
+		WHERE l.user_id = ?
+    `, userID)
+
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var list []models.UserMangaLibrary
+	var items []models.LibraryItem
 
 	for rows.Next() {
-		var item models.UserMangaLibrary
+		var item models.LibraryItem
 
-		if err := rows.Scan(
-			&item.ID,
-			&item.UserID,
+		err := rows.Scan(
 			&item.MangaID,
+			&item.Title,
 			&item.Status,
-		); err != nil {
+			&item.CurrentChapter,
+		)
+
+		if err != nil {
 			return nil, err
 		}
 
-		list = append(list, item)
+		items = append(items, item)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return list, nil
+	return items, nil
 }
 
 // REMOVE FROM LIBRARY

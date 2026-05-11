@@ -11,6 +11,8 @@ import (
 	"mangahub/internal/manga"
 	"mangahub/internal/websocket"
 	"mangahub/pkg/middleware"
+
+	"mangahub/internal/progress"
 )
 
 func SetupRouter(db *sql.DB) *gin.Engine {
@@ -53,7 +55,14 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 
 	// LIBRARY
 	libRepo := library.NewRepository(db)
-	libService := library.NewService(libRepo)
+
+	progressRepo := progress.NewRepository(db)
+
+	libService := library.NewService(
+		libRepo,
+		progressRepo,
+	)
+
 	libHandler := library.NewHandler(libService)
 
 	libraryGroup := protected.Group("/library")
@@ -63,7 +72,6 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 		libraryGroup.DELETE("/:manga_id", libHandler.Remove)
 		libraryGroup.PUT("/:manga_id/status", libHandler.UpdateStatus)
 	}
-
 	// CHAT
 	chatHub := chat.NewHub()
 	go chatHub.Run()

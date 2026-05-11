@@ -1,8 +1,8 @@
 package models
 
-type UserMangaLibrary struct {
-	ID      int    `json:"id"`
-	UserID  int    `json:"user_id"`
-	MangaID int    `json:"manga_id"`
-	Status  string `json:"status"`
+type LibraryItem struct {
+	MangaID        int    `json:"manga_id"`
+	Title          string `json:"title"`
+	Status         string `json:"status"`
+	CurrentChapter int    `json:"current_chapter"`
 }
