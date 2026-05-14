@@ -14,7 +14,7 @@ func NewRepository(db *sql.DB) *Repository {
 	return &Repository{db: db}
 }
 
-// CREATE MANGA
+// create manga
 func (r *Repository) Create(m models.Manga) error {
 
 	query := `
@@ -22,6 +22,7 @@ func (r *Repository) Create(m models.Manga) error {
 			title,
 			author,
 			status,
+			total_chapter,
 			description,
 			genres,
 			cover_url
@@ -42,7 +43,7 @@ func (r *Repository) Create(m models.Manga) error {
 	return err
 }
 
-// GET ALL MANGA
+// Get all manga
 func (r *Repository) GetAll() ([]models.Manga, error) {
 
 	rows, err := r.db.Query(`
@@ -88,8 +89,8 @@ func (r *Repository) GetAll() ([]models.Manga, error) {
 	return list, nil
 }
 
-// GET MANGA BY ID
-func (r *Repository) GetByID(id string) (models.Manga, error) {
+// Get manga by id
+func (r *Repository) GetByID(id int) (models.Manga, error) {
 
 	var m models.Manga
 

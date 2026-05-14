@@ -6,11 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"mangahub/internal/auth"
-	"mangahub/internal/chat"
 	"mangahub/internal/library"
 	"mangahub/internal/manga"
+	"mangahub/internal/middleware"
 	"mangahub/internal/websocket"
-	"mangahub/pkg/middleware"
 
 	"mangahub/internal/progress"
 
@@ -22,7 +21,10 @@ import (
 func SetupRouter(db *sql.DB) *gin.Engine {
 	r := gin.Default()
 
-	// ⭐ ADD CORS HERE (PHẢI ĐẶT TRƯỚC TẤT CẢ ROUTES)
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "pong"})
+	})
+
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"http://localhost:5173"},
 		AllowMethods: []string{
@@ -44,27 +46,30 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
+	// Health
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// AUTH
+	api := r.Group("/api")
+
+	// Auth
 	authRepo := auth.NewRepository(db)
 	authService := auth.NewService(authRepo)
 	authHandler := auth.NewHandler(authService)
 
-	authGroup := r.Group("/auth")
+	authGroup := api.Group("/auth")
 	{
 		authGroup.POST("/register", authHandler.Register)
 		authGroup.POST("/login", authHandler.Login)
 	}
 
-	// MANGA
+	// Manga
 	mangaRepo := manga.NewRepository(db)
 	mangaService := manga.NewService(mangaRepo)
 	mangaHandler := manga.NewHandler(mangaService)
 
-	mangaGroup := r.Group("/manga")
+	mangaGroup := api.Group("/manga")
 	{
 		mangaGroup.GET("/", mangaHandler.GetAll)
 		mangaGroup.GET("/search", mangaHandler.Search)
@@ -72,18 +77,20 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 		mangaGroup.POST("/", mangaHandler.CreateManga)
 	}
 
-	// PROTECTED ROUTES
-	protected := r.Group("/")
-	protected.Use(middleware.AuthMiddleware())
+	// Proteced route
+	protected := api.Group("/")
+	protected.Use(middleware.AuthMiddleware(db))
 
-	// LIBRARY
+	// Library
 	libRepo := library.NewRepository(db)
-
 	progressRepo := progress.NewRepository(db)
+
+	mangaRepo = manga.NewRepository(db)
 
 	libService := library.NewService(
 		libRepo,
 		progressRepo,
+		mangaRepo,
 	)
 
 	libHandler := library.NewHandler(libService)
@@ -94,19 +101,23 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 		libraryGroup.GET("/", libHandler.Get)
 		libraryGroup.DELETE("/:manga_id", libHandler.Remove)
 		libraryGroup.PUT("/:manga_id/status", libHandler.UpdateStatus)
-	}
-	// CHAT
-	chatHub := chat.NewHub()
-	go chatHub.Run()
-
-	chatHandler := chat.NewHandler(chatHub)
-
-	chatGroup := protected.Group("/chat")
-	{
-		chatGroup.GET("/ws/:room_id", chatHandler.HandleWebSocket)
+		libraryGroup.POST("/progress", libHandler.Create)
+		libraryGroup.PUT("/progress", libHandler.Update)
+		libraryGroup.GET("/progress/:manga_id", libHandler.GetProgress)
 	}
 
-	// WEBSOCKET
+	// Chat
+	//chatHub := chat.NewHub()
+	//go chatHub.Run()
+
+	//chatHandler := chat.ChatHandler
+
+	//chatGroup := protected.Group("/chat")
+	//{
+	//	chatGroup.GET("/ws/:room_id", chatHandler.HandleWebSocket)
+	//}
+
+	// Websocket
 	wsHandler := websocket.NewHandler()
 
 	wsGroup := protected.Group("/ws")

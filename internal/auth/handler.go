@@ -18,7 +18,6 @@ func NewHandler(service *Service) *Handler {
 	}
 }
 
-// DTO
 type RegisterInput struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`

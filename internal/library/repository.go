@@ -32,11 +32,10 @@ func (r *Repository) GetByUser(userID int) ([]models.LibraryItem, error) {
 			l.status,
 			p.current_chapter
 		FROM user_manga_library l
-		JOIN manga m
-			ON l.manga_id = m.id
-		JOIN user_progress p
+		JOIN manga m ON l.manga_id = m.id
+		LEFT JOIN user_progress p
 			ON p.user_id = l.user_id
-			AND p.manga_id = l.manga_id
+		AND p.manga_id = l.manga_id
 		WHERE l.user_id = ?
     `, userID)
 
@@ -67,7 +66,7 @@ func (r *Repository) GetByUser(userID int) ([]models.LibraryItem, error) {
 	return items, nil
 }
 
-// REMOVE FROM LIBRARY
+// Remove from lib
 func (r *Repository) Remove(userID, mangaID int) error {
 	_, err := r.db.Exec(
 		`DELETE FROM user_manga_library 
@@ -77,7 +76,7 @@ func (r *Repository) Remove(userID, mangaID int) error {
 	return err
 }
 
-// UPDATE STATUS
+// Update status
 func (r *Repository) UpdateStatus(userID, mangaID int, status string) error {
 	_, err := r.db.Exec(
 		`UPDATE user_manga_library 
@@ -86,4 +85,19 @@ func (r *Repository) UpdateStatus(userID, mangaID int, status string) error {
 		status, userID, mangaID,
 	)
 	return err
+}
+
+// Check exit
+func (r *Repository) CheckExists(userID, mangaID int) (bool, error) {
+	var exists bool
+
+	err := r.db.QueryRow(`
+		SELECT EXISTS(
+			SELECT 1 
+			FROM user_manga_library
+			WHERE user_id = ? AND manga_id = ?
+		)
+	`, userID, mangaID).Scan(&exists)
+
+	return exists, err
 }

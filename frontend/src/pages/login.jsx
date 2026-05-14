@@ -3,13 +3,13 @@ import api from "../api/axios";
 
 export default function Login() {
   const [mode, setMode] = useState("login"); 
-  // login | register
+
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // ===== LOGIN =====
+  // Login
   const handleLogin = async () => {
     try {
       const res = await api.post("/auth/login", {
@@ -24,7 +24,7 @@ export default function Login() {
     }
   };
 
-  // ===== REGISTER =====
+//Register
   const handleRegister = async () => {
     try {
       const res = await api.post("/auth/register", {
@@ -69,7 +69,7 @@ export default function Login() {
 
       <br />
 
-      {/* ACTION BUTTON */}
+      {/* action button */}
       {mode === "login" ? (
         <button onClick={handleLogin}>Login</button>
       ) : (
@@ -78,7 +78,7 @@ export default function Login() {
 
       <br /><br />
 
-      {/* SWITCH MODE */}
+      {/* switch mode */}
       {mode === "login" ? (
         <p>
           No account?{" "}

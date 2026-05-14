@@ -9,13 +9,26 @@ import (
 
 var DB *sql.DB
 
+func Init() {
+	var err error
+	DB, err = sql.Open("sqlite", "mangahub.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	createTables()
+}
+
 func Connect() {
 	var err error
 
-	DB, err = sql.Open("sqlite3", "./data/mangahub.db")
-
+	DB, err = sql.Open("sqlite3", "./mangahub.db")
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if err = DB.Ping(); err != nil {
+		log.Fatal("DB connection failed:", err)
 	}
 
 	createTables()
@@ -30,7 +43,7 @@ func createTables() {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		username TEXT UNIQUE,
 		email TEXT UNIQUE,
-		password TEXT
+		password_hash TEXT
 	);
 	`
 
@@ -40,7 +53,8 @@ func createTables() {
 		title TEXT,
 		author TEXT,
 		status TEXT,
-		description TEXT
+		description TEXT,
+		total_chapters INTEGER
 	);
 	`
 
@@ -49,11 +63,36 @@ func createTables() {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		user_id INTEGER,
 		manga_id INTEGER,
-		chapter INTEGER
+		chapter INTEGER,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		UNIQUE(user_id, manga_id)
 	);
 	`
 
-	DB.Exec(usersTable)
-	DB.Exec(mangaTable)
-	DB.Exec(progressTable)
+	libraryTable := `
+	CREATE TABLE IF NOT EXISTS user_manga_library (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		user_id INTEGER,
+		manga_id INTEGER,
+		status TEXT DEFAULT 'reading',
+		added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		UNIQUE(user_id, manga_id)
+	);
+	`
+
+	if _, err := DB.Exec(usersTable); err != nil {
+		log.Fatal(err)
+	}
+
+	if _, err := DB.Exec(mangaTable); err != nil {
+		log.Fatal(err)
+	}
+
+	if _, err := DB.Exec(progressTable); err != nil {
+		log.Fatal(err)
+	}
+
+	if _, err := DB.Exec(libraryTable); err != nil {
+		log.Fatal(err)
+	}
 }

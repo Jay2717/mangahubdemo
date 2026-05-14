@@ -14,9 +14,10 @@ func NewRepository(db *sql.DB) *Repository {
 }
 
 func (r *Repository) CreateUser(user models.User) error {
+
 	query := `
-		INSERT INTO users(username, email, password)
-		VALUES(?, ?, ?)
+	INSERT INTO users(username, email, password_hash)
+	VALUES(?, ?, ?)
 	`
 
 	_, err := r.db.Exec(
@@ -33,9 +34,8 @@ func (r *Repository) GetUserByUsername(username string) (models.User, error) {
 	var user models.User
 
 	query := `
-		SELECT id, username, email, password
-		FROM users
-		WHERE username = ?
+	SELECT id, username, email, password_hash FROM users
+	WHERE username = ?
 	`
 
 	err := r.db.QueryRow(query, username).Scan(

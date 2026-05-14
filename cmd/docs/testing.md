@@ -27,7 +27,7 @@ go run cmd/api-server/main.go
 
 # Test
 
-## Ping
+//## Ping
 
 ```powershell
 curl http://localhost:8080/ping -UseBasicParsing
@@ -36,7 +36,7 @@ curl http://localhost:8080/ping -UseBasicParsing
 Expected:
 
 ```json
-{"message":"pong"}
+//{"message":"pong"}
 ```
 
 ---
@@ -55,7 +55,7 @@ Expected:
 # Register
 
 ```powershell
-Invoke-WebRequest -Uri http://localhost:8080/register `
+Invoke-WebRequest -Uri http://localhost:8080/api/register `
 -Method POST `
 -Headers @{"Content-Type"="application/json"} `
 -Body '{"username":"liem","password":"123456"}'
@@ -66,7 +66,7 @@ Invoke-WebRequest -Uri http://localhost:8080/register `
 # Login
 
 ```powershell
-Invoke-WebRequest -Uri http://localhost:8080/login `
+Invoke-WebRequest -Uri http://localhost:8080/api/login `
 -Method POST `
 -Headers @{"Content-Type"="application/json"} `
 -Body '{"username":"liem","password":"123456"}'
@@ -82,10 +82,10 @@ Expected:
 
 ---
 
-# Save Token
+//# Save Token
 
-```powershell
-$token="YOUR_TOKEN"
+//```powershell
+//$token="YOUR_TOKEN"
 ```
 
 ---
@@ -93,7 +93,7 @@ $token="YOUR_TOKEN"
 # Test Protected API
 
 ```powershell
-Invoke-WebRequest -Uri http://localhost:8080/manga `
+Invoke-WebRequest -Uri http://localhost:8080/api/manga `
 -Headers @{"Authorization"="Bearer $token"}
 ```
 
@@ -111,7 +111,7 @@ Invoke-WebRequest -Uri http://localhost:8080/manga `
 # Get Manga List
 
 ```powershell
-Invoke-WebRequest -Uri http://localhost:8080/manga `
+Invoke-WebRequest -Uri http://localhost:8080/api/manga `
 -Headers @{"Authorization"="Bearer $token"} |
 Select-Object -Expand Content
 ```
@@ -121,7 +121,7 @@ Select-Object -Expand Content
 # Create Manga
 
 ```powershell
-Invoke-WebRequest -Uri http://localhost:8080/manga `
+Invoke-WebRequest -Uri http://localhost:8080/api/manga `
 -Method POST `
 -Headers @{
 "Content-Type"="application/json"
@@ -368,7 +368,7 @@ kiểm tra server còn hoạt động không.
 # Test
 
 ```powershell
-curl http://localhost:8080/health -UseBasicParsing
+curl http://localhost:8080/api/health -UseBasicParsing
 ```
 
 Expected:
@@ -380,7 +380,7 @@ Expected:
 ---
 
 # 10. NGINX Reverse Proxy
-
+docker start mangahub-nginx
 ## Chức năng
 
 nginx làm gateway trước API servers.
@@ -495,7 +495,7 @@ user thêm manga vào library cá nhân.
 # Add To Reading List
 
 ```powershell
-Invoke-WebRequest -Uri http://localhost:8080/reading-list `
+Invoke-WebRequest -Uri http://localhost:8080/api/user_library `
 -Method POST `
 -Headers @{"Content-Type"="application/json"} `
 -Body '{"username":"liem","manga_id":"blue-box"}'

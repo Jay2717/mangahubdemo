@@ -2,6 +2,7 @@ package manga
 
 import (
 	"net/http"
+	"strconv"
 
 	"mangahub/pkg/models"
 
@@ -16,7 +17,7 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
-// CREATE MANGA
+// create manga
 func (h *Handler) CreateManga(c *gin.Context) {
 	var m models.Manga
 
@@ -34,7 +35,7 @@ func (h *Handler) CreateManga(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "manga created"})
 }
 
-// GET ALL MANGA
+// Get all manga
 func (h *Handler) GetAll(c *gin.Context) {
 	data, err := h.service.GetAll()
 	if err != nil {
@@ -44,9 +45,15 @@ func (h *Handler) GetAll(c *gin.Context) {
 	c.JSON(200, data)
 }
 
-// GET MANGA BY ID
+// Get manga by id
 func (h *Handler) GetByID(c *gin.Context) {
-	id := c.Param("id")
+	idParam := c.Param("id")
+
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid id"})
+		return
+	}
 
 	data, err := h.service.GetByID(id)
 	if err != nil {

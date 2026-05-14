@@ -16,7 +16,7 @@ func NewService(repo *Repository) *Service {
 	}
 }
 
-// REGISTER
+// Register
 func (s *Service) RegisterUser(username, email, password string) error {
 
 	hash, err := bcrypt.GenerateFromPassword(
@@ -37,7 +37,7 @@ func (s *Service) RegisterUser(username, email, password string) error {
 	return s.repo.CreateUser(user)
 }
 
-// LOGIN
+// login
 func (s *Service) LoginUser(username, password string) (models.User, error) {
 
 	user, err := s.repo.GetUserByUsername(username)

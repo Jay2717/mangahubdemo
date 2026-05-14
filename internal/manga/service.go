@@ -20,7 +20,7 @@ func (s *Service) GetAll() ([]models.Manga, error) {
 	return s.repo.GetAll()
 }
 
-func (s *Service) GetByID(id string) (models.Manga, error) {
+func (s *Service) GetByID(id int) (models.Manga, error) {
 	return s.repo.GetByID(id)
 }
 

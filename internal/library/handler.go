@@ -57,7 +57,7 @@ func (h *Handler) Add(c *gin.Context) {
 	})
 }
 
-// GET LIBRARY
+// Get library
 func (h *Handler) Get(c *gin.Context) {
 	userID := c.GetInt("user_id")
 
@@ -72,7 +72,7 @@ func (h *Handler) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, data)
 }
 
-// REMOVE FROM LIBRARY (FIX router error)
+// Remove from lib
 func (h *Handler) Remove(c *gin.Context) {
 	userID := c.GetInt("user_id")
 
@@ -91,7 +91,7 @@ func (h *Handler) Remove(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "removed"})
 }
 
-// UPDATE STATUS (FIX router error)
+// Update status
 func (h *Handler) UpdateStatus(c *gin.Context) {
 	userID := c.GetInt("user_id")
 
@@ -117,4 +117,64 @@ func (h *Handler) UpdateStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "updated"})
+}
+
+// Create progress
+func (h *Handler) Create(c *gin.Context) {
+	userID := c.GetInt("user_id")
+
+	var body struct {
+		MangaID int `json:"manga_id"`
+	}
+
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := h.service.Create(userID, body.MangaID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "created"})
+}
+
+// Update progress
+func (h *Handler) Update(c *gin.Context) {
+	userID := c.GetInt("user_id")
+
+	var body struct {
+		MangaID int `json:"manga_id"`
+		Chapter int `json:"chapter"`
+	}
+
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := h.service.Update(userID, body.MangaID, body.Chapter)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "updated"})
+}
+
+// Get progress
+func (h *Handler) GetProgress(c *gin.Context) {
+	userID := c.GetInt("user_id")
+
+	mangaID, _ := strconv.Atoi(c.Param("manga_id"))
+
+	data, err := h.service.GetProgress(userID, mangaID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, data)
 }

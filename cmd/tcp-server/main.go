@@ -2,10 +2,10 @@ package main
 
 import (
 	"mangahub/internal/tcp"
-	"mangahub/pkg/database"
+	//"mangahub/pkg/database"
 )
 
 func main() {
-	database.Init()
+	//database.Init()
 	tcp.StartTCPServer()
 }
